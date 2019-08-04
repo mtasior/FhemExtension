@@ -46,10 +46,11 @@ class FhemMessage {
                 }
 
                 if (messageArray.size < 6) {
+                    fhemMessage.value = fhemMessage.attribute
+                    fhemMessage.attribute = "state"
                     list.add(fhemMessage)
                     continue
                 }
-                //TODO: when length < 6 then the STATE is broadcast, attribute must be set to STATE, value to messageArray[4]. See Swift implementation
 
                 var value = messageArray[5]
 
