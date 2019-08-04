@@ -19,8 +19,8 @@ class FhemMessage {
     }
 
     companion object {
-        fun deserialize(message: String): Set<FhemMessage> {
-            var message = message
+        fun deserialize(msg: String): Set<FhemMessage> {
+            var message = msg
             val list = mutableSetOf<FhemMessage>()
 
             //there can be more than one message in a frame
