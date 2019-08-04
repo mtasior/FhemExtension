@@ -38,7 +38,7 @@ Every time a message from the given devices is fired, the `messageReceived()` is
 
 ```java
 override fun messageReceived(message: FhemMessage) {
-        if (message.attribute == DEVICE_A) {
+        if (message.attribute == A_READING_YOU_ARE_INTERESTED_IN) {
             // do something with message.value
         }
 ```
@@ -73,3 +73,4 @@ In case you want to modify FHEM directly from your device, e.g. for changing val
 ```java
 FHEM.sendCommandToFhem("any FHEM command you would write into the textfield")
 ```
+
