@@ -44,6 +44,13 @@ abstract class FhemExternalDevice(val deviceName: String, DELAY: Long = -1, INTE
     }
 
     /**
+     * Returns the value of a reading for another device
+     */
+    fun getReadingOfDeviceAsString(device: String, reading: String): String? {
+        return FHEM.getJsonlist2DataForDevice(device)?.getValueOfReadingAsString(reading)
+    }
+
+    /**
      * Key and value must not contain Sonderzeichen and Umlaute
      */
     fun setReading(reading: String, value: String, currentValue: String? = null) {
@@ -54,7 +61,7 @@ abstract class FhemExternalDevice(val deviceName: String, DELAY: Long = -1, INTE
         FHEM.sendPushMessage(message)
     }
 
-    open fun messageReceived(message: FhemMessage){}
+    open fun messageReceived(message: FhemMessage) {}
 
     private fun startTimedExecution(delaySeconds: Long, intervalSeconds: Long) {
         scheduledExecutor.scheduleAtFixedRate({
@@ -68,5 +75,5 @@ abstract class FhemExternalDevice(val deviceName: String, DELAY: Long = -1, INTE
         }).start()
     }
 
-    open fun runPeriodically(){}
+    open fun runPeriodically() {}
 }
