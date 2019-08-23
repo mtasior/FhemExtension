@@ -74,3 +74,15 @@ In case you want to modify FHEM directly from your device, e.g. for changing val
 FHEM.sendCommandToFhem("any FHEM command you would write into the textfield")
 ```
 
+Use a FHEM reading of any given device as local variable, write it directly and register for changes:
+
+```java
+    private val someReading = LiveReading(EXTERNAL_DEVICE_DUMMY_NAME, "synchronizedReading", "OFF")
+
+    someReading.observe { 
+                println("OMG, someone changed the reading to $it")
+            }
+    
+    // write the new value directly to sync it to FHEM
+    someReading.value = "newValue"
+```

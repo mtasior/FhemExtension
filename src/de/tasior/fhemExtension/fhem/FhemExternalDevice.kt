@@ -11,6 +11,7 @@ abstract class FhemExternalDevice(val deviceName: String, DELAY: Long = -1, INTE
     private val scheduledExecutor = Executors.newSingleThreadScheduledExecutor()!!
     protected val ON = "on"
     protected val OFF = "off"
+    protected val STATE = "state"
 
     init {
         FHEM.addMessageListener(this)
