@@ -68,21 +68,25 @@ result.getValueOfReadingAsString(reading: String): String?)
 
 There is also a function very specific to the author's FHEM instance: `fun sendPushMessage(message: String)` which triggers a Push Message using FHEM Widget 2's push functionality. You can replicate this if you desire.  
 
-In case you want to modify FHEM directly from your device, e.g. for changing values in some FHEM device, you can execute FHEM commands directly from within your FhemExternalDevice by calling 
+In case you want to modify FHEM directly from your device, e.g. for changing values in some FHEM device, you can execute FHEM commands directly from within your FhemExternalDevice by calling
 
 ```java
 FHEM.sendCommandToFhem("any FHEM command you would write into the textfield")
 ```
 
-Use a FHEM reading of any given device as local variable, write it directly and register for changes:
+## LiveReading
+In case you want to have always synced local copy of any FHEM Reading, then you can use a LiveReading. You can register observers to act on every change and you can write to it directly and it is immediately synced to FHEM.
 
 ```java
-    private val someReading = LiveReading(EXTERNAL_DEVICE_DUMMY_NAME, "synchronizedReading", "OFF")
+private val someReading = LiveReading(EXTERNAL_DEVICE_DUMMY_NAME, "synchronizedReading", "OFF")
 
-    someReading.observe { 
-                println("OMG, someone changed the reading to $it")
-            }
-    
-    // write the new value directly to sync it to FHEM
-    someReading.value = "newValue"
+someReading.observe {
+  println("OMG, someone changed the reading to $it")
+}
+
+// write the new value directly to sync it to FHEM
+someReading.value = "newValue"
+
+// Directly access the always-synced value and work with it.
+val result = "The state is ${someReading.value}"
 ```
