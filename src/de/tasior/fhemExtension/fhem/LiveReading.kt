@@ -42,7 +42,7 @@ class LiveReading<T>(private val device: String, private val reading: String, in
         if (currentVal != null) {
             applyNewValue(currentVal)
         } else {
-            value = initialValue
+            FHEM.setReading(device, reading, initialValue.toString())
         }
     }
 

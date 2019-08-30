@@ -4,6 +4,7 @@ import de.tasior.fhemExtension.fhem.FhemConnectionHandler.Jsonlist2Result
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
+@Suppress("LeakingThis") // Can be omitted by connecting to FHEM last
 abstract class FhemExternalDevice(val deviceName: String, DELAY: Long = -1, INTERVAL: Long = -1)
     : FhemMessageListener {
     open val devicesToListen = listOf<String>()
@@ -14,8 +15,6 @@ abstract class FhemExternalDevice(val deviceName: String, DELAY: Long = -1, INTE
     protected val STATE = "state"
 
     init {
-        FHEM.addMessageListener(this)
-
         Runtime.getRuntime().addShutdownHook(Thread {
             println("Cancelling the scheduled Executor for device $deviceName")
             scheduledExecutor.shutdown()
@@ -24,6 +23,19 @@ abstract class FhemExternalDevice(val deviceName: String, DELAY: Long = -1, INTE
         if (DELAY > -1 && INTERVAL > -1) {
             startTimedExecution(DELAY, INTERVAL)
         }
+
+        // it leaks "this" in the constructor which can lead to null pointers after startup. This is why it is advisable
+        // that the initialization sequence is
+        //    FHEM.setConnectionData(FHEM_HOST, FHEM_PORT)
+        //
+        //    FhemExternalDeviceA()
+        //    FhemExternalDeviceB()
+        //    FhemExternalDeviceC()
+        //
+        //    FHEM.startConnecting()
+        //
+        // It is implemented like this to avoid the additional init step in each derived Device
+        FHEM.addMessageListener(this)
     }
 
     override fun onMessage(message: FhemMessage) {
