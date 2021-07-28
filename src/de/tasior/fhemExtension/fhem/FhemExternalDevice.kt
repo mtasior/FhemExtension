@@ -4,38 +4,50 @@ import de.tasior.fhemExtension.fhem.FhemConnectionHandler.Jsonlist2Result
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-@Suppress("LeakingThis") // Can be omitted by connecting to FHEM last
 abstract class FhemExternalDevice(val deviceName: String, DELAY: Long = -1, INTERVAL: Long = -1)
     : FhemMessageListener {
     open val devicesToListen = listOf<String>()
 
-    private val scheduledExecutor = Executors.newSingleThreadScheduledExecutor()!!
+    private var fhemInstance: FhemConnectionHandler? = null
+
+    private val scheduledExecutor = Executors.newSingleThreadScheduledExecutor()
     protected val ON = "on"
     protected val OFF = "off"
     protected val STATE = "state"
 
     init {
         Runtime.getRuntime().addShutdownHook(Thread {
-            println("Cancelling the scheduled Executor for device $deviceName")
+            log("Cancelling the scheduled Executor for device $deviceName")
             scheduledExecutor.shutdown()
+            fhemInstance?.let {
+                log("deregistering from FHEM")
+                deregisterFromFhem()
+            }
         })
+
+        if (getCurrentDeviceState() == null) {
+            log("Not present in FHEM, creating new dummy")
+            FHEM.sendCommandToFhem("define $deviceName dummy")
+        }
 
         if (DELAY > -1 && INTERVAL > -1) {
             startTimedExecution(DELAY, INTERVAL)
         }
+    }
 
-        // it leaks "this" in the constructor which can lead to null pointers after startup. This is why it is advisable
-        // that the initialization sequence is
-        //    FHEM.setConnectionData(FHEM_HOST, FHEM_PORT)
-        //
-        //    FhemExternalDeviceA()
-        //    FhemExternalDeviceB()
-        //    FhemExternalDeviceC()
-        //
-        //    FHEM.startConnecting()
-        //
-        // It is implemented like this to avoid the additional init step in each derived Device
-        FHEM.addMessageListener(this)
+    /**
+     * Register this virtual device with a given FHEM instance
+     */
+    fun registerWithFhem(instance: FhemConnectionHandler) {
+        fhemInstance = instance
+        instance.addMessageListener(this)
+    }
+
+    /**
+     * Deregisters this virtual device from a FHEM instance if present
+     */
+    fun deregisterFromFhem(){
+        fhemInstance?.removeMessageListener(this)
     }
 
     override fun onMessage(message: FhemMessage) {
@@ -74,18 +86,20 @@ abstract class FhemExternalDevice(val deviceName: String, DELAY: Long = -1, INTE
         FHEM.sendPushMessage(message)
     }
 
+    fun log(message: String) {
+        println("${deviceName.uppercase()}: $message")
+    }
+
     open fun messageReceived(message: FhemMessage) {}
 
     private fun startTimedExecution(delaySeconds: Long, intervalSeconds: Long) {
         scheduledExecutor.scheduleAtFixedRate({
-            executeScheduled()
+            try {
+                runPeriodically()
+            } catch (e: Exception) {
+                println("$deviceName: Exception in periodical request: ${e.localizedMessage}")
+            }
         }, delaySeconds, intervalSeconds, TimeUnit.SECONDS)
-    }
-
-    private fun executeScheduled() {
-        Thread(Runnable {
-            runPeriodically()
-        }).start()
     }
 
     open fun runPeriodically() {}

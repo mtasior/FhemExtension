@@ -5,8 +5,6 @@ import java.rmi.activation.UnknownObjectException
 /**
  * A representative of a dummys reading that is updated when changed in FHEM
  * setting a new value updates the FHEM version of it.
- *
- * Currently supports String, Int, Float and Double
  */
 @Suppress("UNCHECKED_CAST")
 class LiveReading<T>(private val device: String, private val reading: String, initialValue: T) {
@@ -59,12 +57,17 @@ class LiveReading<T>(private val device: String, private val reading: String, in
         }
     }
 
+    fun webCmd(cmd: String){
+        FHEM.sendCommandToFhem("set $device $cmd")
+    }
+
     private fun applyNewValue(newValue: String) {
         _value = when (_value) {
             is String? -> newValue as T
             is Int? -> newValue.toIntOrNull() as T
             is Float? -> newValue.toFloatOrNull() as T
             is Double? -> newValue.toDoubleOrNull() as T
+            is Boolean? -> newValue.toBooleanStrict() as T
             else -> throw UnknownObjectException("The value is of an unused type")
         }
     }

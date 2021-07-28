@@ -23,10 +23,12 @@ csrfToken   none
 longpoll    websocket
 ```
 
+### Virtual device setup
 Define the name of your FHEMWEB device and its port in `Constants.kt` and run `Main.kt`.  
 For every external device you may want to integrate into FHEM, create a class that inherits from `FhemExternalDevice`.
-Every `FhemExternalDevice` must be provided with a name of a corresponding dummy device in your FHEM instance.  
+Every `FhemExternalDevice` must be provided with a name of a corresponding dummy device in your FHEM instance. It must also be registered with your FHEM instance using `FhemExternalDevice::registerWithFhem`. 
 
+### Listening to messages
 Now you can start listening to messages from your FHEM by providing a list of device names like so:
 
 ```java
@@ -43,6 +45,7 @@ override fun messageReceived(message: FhemMessage) {
         }
 ```
 
+### Scheduled Execution
 If you provide the constructor with a DELAY and an INTERVAL in seconds `class MyDevice : FhemExternalDevice(DEVICE_DUMMY_NAME, 2L, 10L) {` then the `runPeriodically()` is called in the given interval
 
 ```java
@@ -52,6 +55,7 @@ override fun runPeriodically() {
 ```
 This is called in a new `Thread` every time it is invoked. If it fails, the subsequent calls will then also run.
 
+### Batch update the data in FHEM
 You might then want to update data in your dummy to store stuff or trigger functionality implemented in FHEM. This can be done using
 ```java
 fun setObjectAsReadings(value: Any?, currentState: Jsonlist2Result? = null)
@@ -68,6 +72,7 @@ result.getValueOfReadingAsString(reading: String): String?)
 
 There is also a function very specific to the author's FHEM instance: `fun sendPushMessage(message: String)` which triggers a Push Message using FHEM Widget 2's push functionality. You can replicate this if you desire.  
 
+### Executing commands directly
 In case you want to modify FHEM directly from your device, e.g. for changing values in some FHEM device, you can execute FHEM commands directly from within your FhemExternalDevice by calling
 
 ```java
@@ -75,7 +80,7 @@ FHEM.sendCommandToFhem("any FHEM command you would write into the textfield")
 ```
 
 ## LiveReading
-In case you want to have always synced local copy of any FHEM Reading, then you can use a LiveReading. You can register observers to act on every change and you can write to it directly and it is immediately synced to FHEM.
+In case you want to have always synced local copy of **any** FHEM Reading, then you can use a LiveReading. You can register observers to act on every change and you can write to it directly and it is immediately synced to FHEM.
 
 ```java
 private val someReading = LiveReading(EXTERNAL_DEVICE_DUMMY_NAME, "synchronizedReading", "OFF")

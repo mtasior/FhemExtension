@@ -39,7 +39,7 @@ class FhemConnectionHandler private constructor() : FhemWebsocketClientDelegate 
         val instance = FhemConnectionHandler()
     }
 
-    fun startConnecting() {
+    fun connect() {
         if (host == null || port == -1) {
             println("Please provide URL and Port")
             System.exit(0)
@@ -86,6 +86,13 @@ class FhemConnectionHandler private constructor() : FhemWebsocketClientDelegate 
     fun addMessageListener(listener: FhemMessageListener) {
         listeners.add(listener)
         fhemWebsocketClient?.addListener(listener)
+    }
+
+    /**
+     * Removes a listener from the communication.
+     */
+    fun removeMessageListener(listener: FhemMessageListener) {
+        if (listeners.contains(listener)) listeners.remove(listener)
     }
 
     /**
