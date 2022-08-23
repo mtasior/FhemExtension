@@ -5,10 +5,10 @@ import com.google.gson.JsonObject
 import de.tasior.fhemExtension.EXTENSION_VERSION
 import de.tasior.fhemExtension.FHEM_EXTENSION_DEVICE
 import de.tasior.fhemExtension.util.Dumpable
-import org.apache.http.client.methods.CloseableHttpResponse
-import org.apache.http.client.methods.HttpGet
-import org.apache.http.impl.client.HttpClients
-import org.apache.http.util.EntityUtils
+import org.apache.hc.client5.http.classic.methods.HttpGet
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse
+import org.apache.hc.client5.http.impl.classic.HttpClients
+import org.apache.hc.core5.http.io.entity.EntityUtils
 import java.io.IOException
 import java.net.*
 import java.util.*
@@ -55,6 +55,10 @@ class FhemConnectionHandler private constructor() : FhemWebsocketClientDelegate 
         setAllFieldsOfClassAsReadingToFhemInstance(Version(), statusDevice)
     }
 
+    fun disconnect() {
+        fhemWebsocketClient?.close()
+    }
+
     fun setConnectionData(ip: String, port: Int, device: String? = null) {
         this.host = ip
         this.port = port
@@ -66,8 +70,12 @@ class FhemConnectionHandler private constructor() : FhemWebsocketClientDelegate 
     private fun createAndConnect() {
         fhemWebsocketClient = null
         try {
-            fhemWebsocketClient = FhemWebsocketClient(URI("ws://" + host + ":" + port +
-                    "/fhem?XHR=1&inform=type=raw;withLog=0;filter=.*&timestamp=1513796954504")).apply {
+            fhemWebsocketClient = FhemWebsocketClient(
+                URI(
+                    "ws://" + host + ":" + port +
+                            "/fhem?XHR=1&inform=type=raw;withLog=0;filter=.*&timestamp=1513796954504"
+                )
+            ).apply {
                 setListeners(listeners)
                 setDelegate(this@FhemConnectionHandler)
                 connect()
@@ -184,11 +192,11 @@ class FhemConnectionHandler private constructor() : FhemWebsocketClientDelegate 
 
         try {
             var urlString = "http://$host:$port/fhem?cmd="
-            val query = URLEncoder.encode(pCommand, "UTF-8").replace("+", "%20")
+            val query = URLEncoder.encode(pCommand.replace("  ", " "), "UTF-8").replace("+", "%20")
             urlString += "$query&XHR=1"
 
             val url = URL(urlString)
-            //println("Sending Command: \"$urlString\"")
+            println("Sending Command: \"$urlString\"")
 
             //execute the request
             val fhemRequest = HttpGet(url.toURI())

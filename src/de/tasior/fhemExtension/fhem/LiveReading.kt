@@ -1,7 +1,5 @@
 package de.tasior.fhemExtension.fhem
 
-import java.rmi.activation.UnknownObjectException
-
 /**
  * A representative of a dummys reading that is updated when changed in FHEM
  * setting a new value updates the FHEM version of it.
@@ -28,6 +26,7 @@ class LiveReading<T>(private val device: String, private val reading: String, in
     init {
         FHEM.addMessageListener(object : FhemMessageListener {
             override fun onMessage(message: FhemMessage) {
+                if (message.moduleName == device) println(message)
                 if (message.moduleName == device && message.attribute == reading && message.value != _value.toString()) {
                     applyNewValue(message.value)
                     notifyObservers()
@@ -57,7 +56,7 @@ class LiveReading<T>(private val device: String, private val reading: String, in
         }
     }
 
-    fun webCmd(cmd: String){
+    fun webCmd(cmd: String) {
         FHEM.sendCommandToFhem("set $device $cmd")
     }
 
@@ -67,8 +66,8 @@ class LiveReading<T>(private val device: String, private val reading: String, in
             is Int? -> newValue.toIntOrNull() as T
             is Float? -> newValue.toFloatOrNull() as T
             is Double? -> newValue.toDoubleOrNull() as T
-            is Boolean? -> newValue.toBooleanStrict() as T
-            else -> throw UnknownObjectException("The value is of an unused type")
+            is Boolean? -> newValue.toBoolean() as T
+            else -> throw Exception("The value is of an unused type")
         }
     }
 }

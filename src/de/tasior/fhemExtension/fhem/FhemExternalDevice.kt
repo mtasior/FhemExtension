@@ -87,7 +87,7 @@ abstract class FhemExternalDevice(val deviceName: String, DELAY: Long = -1, INTE
     }
 
     fun log(message: String) {
-        println("${deviceName.uppercase()}: $message")
+        println("${deviceName.toUpperCase()}: $message")
     }
 
     open fun messageReceived(message: FhemMessage) {}
